@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>
+            {{ name }}
+        </title>
+        <h3>
+            {{ user }}
+        </h3>
+    </head>
+
+    <body>
+        Cuisine: {{ cuisine }}
+        Service: {{ type }}
+
+
+        - {{ walk_time }} walk from NCSSM
+        - People usually spend {{ time_range }} here
+        - Typical cost per person: {{ price_range }}
+
+
+        Hours of operation:
+
+            Monday: {{ mon_hrs }}
+            Tuesday: {{ tue_hrs }}
+            Wednesday: {{ wed_hrs }}
+            Thursday: {{ thu_hrs }}
+            Friday: {{ fri_hrs }}
+            Saturday: {{ sat_hrs }}
+            Sunday: {{ sun_hrs }}
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Rating</th>
+                    <th>Comment</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rating, comment in reviews %}
+                <tr>
+                    <td>{{ rating }}</td>
+                    <td>{{ comment }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </body>
+</html>
