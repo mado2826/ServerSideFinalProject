@@ -80,6 +80,9 @@ def database_fill() -> bool:
     __db.close()
     return True
 
+#____________________________________________________________________________________________________________________
+#RESTAURANT-RELATED METHODS
+
 '''
     Returns the address of the restaurant with the specified name
 
@@ -327,6 +330,9 @@ def get_sun_hrs(name):
     else:
         return None
 
+#____________________________________________________________________________________________________________________
+#REVIEW-RELATED METHODS
+
 '''
     Returns all reviews of the restaurant with the specified name
 
@@ -435,7 +441,16 @@ def avg_rating(name):
         avg = float(sum(r[0] for r in ratings)) / float(len(ratings))
         return round(avg, 1)
     
+#____________________________________________________________________________________________________________________
+#EVENT-RELATED METHODS
 
+'''
+    Returns all events at the restaurant with the specified name
+
+    @param name the restaurant name
+
+    @return all rows from the events table that match the restaurant parameter
+'''
 def get_restaurant_events(name):
     events_get = "SELECT * FROM events WHERE restaurant = ?"
 
@@ -444,6 +459,16 @@ def get_restaurant_events(name):
     __db.close()
     return events
 
+'''
+    Creates a new event at the specified restaurant with an empty guest list
+
+    @param location the restaurant name
+    @param host the user hosting the event
+    @param date the date of the event
+    @param time the time of the event
+
+    @return True if creation successful, False otherwise
+'''
 def create_event(location, host, date, time):
     make_event = "INSERT INTO events (restaurant, host, guest_list, date, time) VALUES (?, ?, ?, ?, ?)"
     __db = sqlite3.connect("restaurants.db")
@@ -456,8 +481,33 @@ def create_event(location, host, date, time):
     except:
         __db.close()
         return False
+    
+'''
+    Checks whether the specified user is the host of the event with the given id
 
-def update_guests(id, guest):
+    @param id the event id
+    @param user the user to check
+
+    @return True if the user is the host of the event, False otherwise
+'''
+def is_host(id, user):
+    get_host = "SELECT host FROM events WHERE id = ?"
+    __db = sqlite3.connect("restaurants.db")
+    host = __db.execute(get_host, (id,)).fetchone()
+    __db.close()
+
+    return host[0] == user
+
+'''
+    Toggles the specified guest on or off the guest list of the event with the given id,
+    adding them if not present or removing them if already on the list
+
+    @param id the event id
+    @param guest the guest to add or remove
+
+    @return True if update successful, False otherwise
+'''
+def update_guest_status(id, guest):
     get_guests = "SELECT guest_list FROM events WHERE id = ?"
     guest_update = "UPDATE events SET guest_list = ? WHERE id = ?"
 
@@ -487,13 +537,79 @@ def update_guests(id, guest):
         __db.close()
         return False
 
-def update_details(id, location, date, time):
-    details_update = "UPDATE reviews SET restaurant = ?, date = ?, time = ? WHERE id = ?"
+'''
+    Updates the date and/or time of the event with the given id
 
+    @param id the event id
+    @param date the new date of the event, or None to leave unchanged
+    @param time the new time of the event, or None to leave unchanged
 
+    @return True if update successful, False otherwise
+'''
+def update_details(id, date=None, time=None):
+    details_update = "UPDATE reviews SET date = ?, time = ? WHERE id = ?"
+    date_update = "UPDATE reviews SET date = ? WHERE id = ?"
+    time_update = "UPDATE reviews SET time = ? WHERE id = ?"
+    __db = sqlite3.connect("restaurants.db")
+    
+    if (date != None and time != None):
+        try:
+            __db.execute(details_update, (date, time, id))
+            __db.commit()
+            __db.close()
+            return True
+        except:
+            __db.close()
+            return False
+    elif (date == None and time != None):
+        try:
+            __db.execute(time_update, (time, id))
+            __db.commit()
+            __db.close()
+            return True
+        except:
+            __db.close()
+            return False
+    if (date != None and time == None):
+        try:
+            __db.execute(date_update, (date, id))
+            __db.commit()
+            __db.close()
+            return True
+        except:
+            __db.close()
+            return False
+    __db.close()
+    return False
+    
 
+'''
+    Deletes the event with the specified id, if it exists
+
+    @param id the event id
+
+    @return True if deletion successful, False otherwise
+'''
 def delete_event(id):
-    pass
+    event_find = "SELECT * FROM reviews WHERE id = ?"
+    event_delete = "DELETE FROM reviews WHERE id = ?"
+    __db = sqlite3.connect("restaurants.db")
+
+    #CHECK FOR REVIEW
+    review = __db.execute(event_find, (id,)).fetchone()
+
+    #delete review if exists
+    if review:
+        try:
+            __db.execute(event_delete, (id,))
+            __db.commit()
+            __db.close()
+            return True
+        except:
+            __db.close()
+            return False
+    __db.close()
+    return False
 
 #____________________________________________________________________________________________________________________
 if __name__ == "__main__":
