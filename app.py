@@ -68,13 +68,15 @@ def delete_review():
     if database.delete_review(name, user, rating, comment):
         return redirect(f'/restaurant/{name}')
 
-@app.route('/event', methods = ['GET','POST'])
+@app.route('/event', methods = ['POST'])
 def create_event():
     pass
 
 @app.route('/event', methods = ['PUT'])
 def update_event():
-    pass
+    user = request.form.get("user")
+
+    #figure out user role
 
 @app.route('/event', methods = ['DELETE'])
 def delete_event():
