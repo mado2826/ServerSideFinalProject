@@ -74,9 +74,16 @@ def create_event():
 
 @app.route('/event', methods = ['PUT'])
 def update_event():
+    id = request.form.get("id")
     user = request.form.get("user")
 
     #figure out user role
+    if (database.is_host()):
+        date = request.form.get("date")
+        time = request.form.get("time")
+        database.update_details(id, date, time)
+    else:
+        database.toggle_guest(id, user)
 
 @app.route('/event', methods = ['DELETE'])
 def delete_event():
