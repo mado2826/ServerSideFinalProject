@@ -1,19 +1,39 @@
 from flask import Flask, jsonify, Response, request, send_file, redirect, jsonify, render_template, make_response, flash
-import database
-import redis
+from flask import Flask
+from flask_cors import CORS
+from flask_jwt_extended import JWTManager, create_access_token
+from dotenv import load_dotenv
+import os
+import database as database
+from google.oauth2 import id_token
+from google.auth.transport import requests as gr
+
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'skibiditoilet6767'
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
+CORS(app)
+JWTManager(app)
 
-r = redis.Redis()
 
-@app.route('/')
-def start():
-    pass
+# @app.route('/')
+# def start():
+#     pass
 
-@app.route('/login')
+@app.route('/login', methods = ['POST'])
 def login():
-    pass
+    token = request.json["credential"]
+    
+    info = id_token.verify_oauth2_token(token, gr.Request(), os.getenv("GOOGLE_CLIENT_ID"))
+    
+    email = info["email"]
+    
+    if not email.endswith("@" + os.getenv("ALLOWED_DOMAIN")):
+        return jsonify({"error": "School email required"}), 403
+    
+    access_token = create_access_token(identity=email)
+    return jsonify({"token": access_token, "email": email, "name": info["name"]})
+
 
 @app.route("/logout", methods=["POST"])
 def logout():
@@ -88,3 +108,6 @@ def update_event():
 @app.route('/event', methods = ['DELETE'])
 def delete_event():
     pass
+
+if __name__=='__main__':
+    app.run(debug=True)
