@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>UniEats | Home</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        /* Simple styling to hide/show sections */
+        #map-container { display: none; }
+        .hero { text-align: center; padding: 50px; font-family: sans-serif; }
+    </style>
+</head>
+<body>
+
+    <div id="login-container" class="hero">
+        <h1>Welcome to UniEats</h1>
+        <p>Find the best food near campus.</p>
+        <div id="buttonDiv"></div>
+    </div>
+
+    <div id="map-container">
+        <h1>Your Map is Ready!</h1>
+        <div id="map" style="height: 400px; background: #eee;"></div>
+    </div>
+
+    <script>
+        // 1. Initialize Google Identity
+        window.onload = function () {
+            google.accounts.id.initialize({
+                client_id: "1064896253309-9ar3chk16ibb90jhakq6ran99fvbs2k7.apps.googleusercontent.com",
+                callback: handleCredentialResponse
+            });
+
+            // This renders the official "Sign in with Google" button
+            google.accounts.id.renderButton(
+                document.getElementById("buttonDiv"),
+                { theme: "outline", size: "large", text: "signin_with" }
+            );
+
+            google.accounts.id.prompt(); // Display the One Tap prompt
+        };
+
+        // 2. Handle the response after login
+        function handleCredentialResponse(response) {
+            console.log("Success! Token received.");
+            
+            // Save token so the 'Map Page' can check it later
+            localStorage.setItem("uniEats_token", response.credential);
+
+            // UI Changes
+            document.getElementById("login-container").style.display = "none";
+            document.getElementById("map-container").style.display = "block";
+
+            // If this were a multi-page app, you'd redirect here:
+            // window.location.href = "map.html";
+        }
+    </script>
+</body>
+</html>
