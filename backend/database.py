@@ -451,8 +451,8 @@ def avg_rating(name):
 
     @return all rows from the events table that match the restaurant parameter
 '''
-def get_restaurant_events(name):
-    events_get = "SELECT * FROM events WHERE restaurant = ?"
+def get_events(name):
+    events_get = "SELECT id, host, guest_list, date, time FROM events WHERE restaurant = ?"
 
     __db = sqlite3.connect("restaurants.db")
     events = __db.execute(events_get, (name,)).fetchall()
