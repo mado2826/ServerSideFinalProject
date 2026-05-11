@@ -1,19 +1,19 @@
 from flask import Flask, jsonify, Response, request, send_file, redirect, jsonify, render_template, make_response, flash
 from flask import Flask
 from flask_cors import CORS
-from flask_jwt_extended import JWTManager, create_access_token
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from dotenv import load_dotenv
 import os
 import database as database
 from google.oauth2 import id_token
 from google.auth.transport import requests as gr
-import timedelta
+import datetime
 
 load_dotenv()
 
 app = Flask(__name__)
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=1)
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = datetime.timedelta(days=1)
 CORS(app)
 JWTManager(app)
 
