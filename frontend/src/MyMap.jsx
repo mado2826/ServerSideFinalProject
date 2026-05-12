@@ -7,7 +7,7 @@ export default function MyMap(){
         <Map
             defaultZoom={15}
             defaultCenter={ { lat: 36.0189, lng: -78.9206 } }
-            mapId = 'main-map'
+            mapId = {'a3703dc5223b10a9666982fe'}
             disableDefaultUI
             >
             
