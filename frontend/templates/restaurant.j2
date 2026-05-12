@@ -4,12 +4,17 @@
         <title>
             {{ name }}
         </title>
-        <h3>
-            {{ user }}
-        </h3>
     </head>
 
     <body>
+        <h2>
+            {{ address }}
+        </h2>
+        <div id="return-button">
+            <button type="button" id="btn-return" onclick="returnToMap()">Return</button>
+        </div>
+
+        Rating: {{ rating }}
         Cuisine: {{ cuisine }}
         Service: {{ type }}
 
@@ -37,13 +42,191 @@
                 </tr>
             </thead>
             <tbody>
-                {% for rating, comment in reviews %}
-                <tr>
-                    <td>{{ rating }}</td>
+                {% for review_rating, comment in reviews %}
+                <tr class="review-row">
+                    <td>{{ review_rating }}</td>
                     <td>{{ comment }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+
+        <div id="review-form">
+            <label for="rating-input">Rating (1-5): </label>
+            <input type="text" id="rating-input" name="rating">
+
+            <label for="comment-input">Comment (optional): </label>
+            <input type="text" id="comment-input" name="comment">
+
+            <button type="button" onclick="submitReview()">Submit Review</button>
+
+            <button type="button" onclick="deleteReview()">Delete Review</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Event ID</th>
+                    <th>Host</th>
+                    <th>Guests</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for id, host, guest_list, date, time in events %}
+                <tr class="event-row" style="cursor: pointer;"
+                    data-id="{{ id }}"
+                    data-host="{{ host }}">
+                    <td>{{ id }}</td>
+                    <td>{{ host }}</td>
+                    <td>{{ guest_list }}</td>
+                    <td>{{ date }}</td>
+                    <td>{{ time }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div id="event-form">
+            <span id="date-group">
+                <label for="date-input">Event Date: </label>
+                <input type="text" id="date-input" name="date">
+            </span>
+
+            <span id="time-group">
+                <label for="time-input">Event Time: </label>
+                <input type="text" id="time-input" name="time">
+            </span>
+
+            <button type="button" id="btn-create"     onclick="createEvent()">Create Event</button>
+
+            <button type="button" id="btn-update"     onclick="updateEvent()" style="display:none;">Update Event</button>
+
+            <button type="button" id="btn-join-leave" onclick="joinleaveEvent()" style="display:none;">Join/Leave Event</button>
+
+            <button type="button" id="btn-delete"     onclick="deleteEvent()" style="display:none;">Delete Event</button>
+        </div>
+
+        <footer>
+            <h3>
+                User: {{ user }}
+            </h3>
+        </footer>
+
+    <script>
+        const currentUser = "{{ user }}";
+        let selectedRow = null;
+
+        document.querySelectorAll(".event-row").forEach(row => {
+            row.addEventListener("click", () => {
+                if (selectedRow === row) {
+                    row.style.outline = "";
+                    selectedRow = null;
+                    setEventFormState(null);
+                } else {
+                    if (selectedRow) selectedRow.style.outline = "";
+                    row.style.outline = "2px solid steelblue";
+                    selectedRow = row;
+                    setEventFormState(row.dataset);
+                }
+            });
+        });
+
+        function setEventFormState(data) {
+            const isSelected = data !== null;
+            const isHost = isSelected && data.host === currentUser;
+
+            document.getElementById("btn-create").style.display     = isSelected ? "none"  : "";
+            document.getElementById("btn-update").style.display     = isHost     ? ""      : "none";
+            document.getElementById("btn-delete").style.display     = isHost     ? ""      : "none";
+            document.getElementById("btn-join-leave").style.display = (isSelected && !isHost) ? "" : "none";
+
+            const showInputs = !isSelected || isHost;
+            document.getElementById("date-group").style.display = showInputs ? "" : "none";
+            document.getElementById("time-group").style.display = showInputs ? "" : "none";
+        }
+
+        function submitReview() {
+            const rating = document.getElementById("rating-input").value;
+            const comment = document.getElementById("comment-input").value;
+
+            fetch('/review', {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: "{{ name }}", r: rating, c: comment })
+            }).then(res => {
+                if (res.ok) {
+                    document.getElementById("rating-input").value = "";
+                    document.getElementById("comment-input").value = "";
+                }
+            });
+        }
+
+        function deleteReview() {
+            fetch('/review', {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: "{{ name }}" })
+            }).then(res => {
+                if (res.ok) {
+                    document.getElementById("rating-input").value = "";
+                    document.getElementById("comment-input").value = "";
+                }
+            });
+        }
+
+        function createEvent() {
+            const date = document.getElementById("date-input").value;
+            const time = document.getElementById("time-input").value;
+
+            fetch('/event', {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: "{{ name }}", d: date, t: time })
+            }).then(res => {
+                if (res.ok) {
+                    document.getElementById("date-input").value = "";
+                    document.getElementById("time-input").value = "";
+                }
+            });
+        }
+
+        function updateEvent() {
+            const date = document.getElementById("date-input").value;
+            const time = document.getElementById("time-input").value;
+
+            fetch('/event', {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: selectedRow.dataset.id, d: date, t: time })
+            }).then(res => {
+                if (res.ok) {
+                    document.getElementById("date-input").value = "";
+                    document.getElementById("time-input").value = "";
+                }
+            });
+        }
+
+        function joinleaveEvent() {
+            fetch('/event/join', {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: selectedRow.dataset.id })
+            });
+        }
+
+        function deleteEvent() {
+            fetch('/event', {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: selectedRow.dataset.id })
+            });
+        }
+
+        function returnToMap() {
+            window.location.href = '/map';
+        }
+    </script>
     </body>
 </html>

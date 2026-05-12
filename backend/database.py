@@ -451,8 +451,8 @@ def avg_rating(name):
 
     @return all rows from the events table that match the restaurant parameter
 '''
-def get_restaurant_events(name):
-    events_get = "SELECT * FROM events WHERE restaurant = ?"
+def get_events(name):
+    events_get = "SELECT id, host, guest_list, date, time FROM events WHERE restaurant = ?"
 
     __db = sqlite3.connect("restaurants.db")
     events = __db.execute(events_get, (name,)).fetchall()
@@ -507,7 +507,7 @@ def is_host(id, user):
 
     @return True if update successful, False otherwise
 '''
-def update_guest_status(id, guest):
+def toggle_guest(id, guest):
     get_guests = "SELECT guest_list FROM events WHERE id = ?"
     guest_update = "UPDATE events SET guest_list = ? WHERE id = ?"
 
@@ -547,9 +547,9 @@ def update_guest_status(id, guest):
     @return True if update successful, False otherwise
 '''
 def update_details(id, date=None, time=None):
-    details_update = "UPDATE reviews SET date = ?, time = ? WHERE id = ?"
-    date_update = "UPDATE reviews SET date = ? WHERE id = ?"
-    time_update = "UPDATE reviews SET time = ? WHERE id = ?"
+    details_update = "UPDATE events SET date = ?, time = ? WHERE id = ?"
+    date_update = "UPDATE events SET date = ? WHERE id = ?"
+    time_update = "UPDATE events SET time = ? WHERE id = ?"
     __db = sqlite3.connect("restaurants.db")
     
     if (date != None and time != None):
@@ -591,8 +591,8 @@ def update_details(id, date=None, time=None):
     @return True if deletion successful, False otherwise
 '''
 def delete_event(id):
-    event_find = "SELECT * FROM reviews WHERE id = ?"
-    event_delete = "DELETE FROM reviews WHERE id = ?"
+    event_find = "SELECT * FROM events WHERE id = ?"
+    event_delete = "DELETE FROM events WHERE id = ?"
     __db = sqlite3.connect("restaurants.db")
 
     #CHECK FOR REVIEW
