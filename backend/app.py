@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import os
 import database as database
 from google.oauth2 import id_token
+import requests
 from google.auth.transport import requests as gr
 
 load_dotenv()
@@ -20,17 +21,18 @@ JWTManager(app)
 # def start():
 #     pass
 
-@app.route('/login', methods = ['POST'])
+@app.route('/login', methods=['POST'])
 def login():
     token = request.json["credential"]
-    
-    info = id_token.verify_oauth2_token(token, gr.Request(), os.getenv("GOOGLE_CLIENT_ID"))
-    
+
+    info = id_token.verify_oauth2_token(
+        token, gr.Request(), os.getenv("GOOGLE_CLIENT_ID"))
+
     email = info["email"]
-    
+
     if not email.endswith("@" + os.getenv("ALLOWED_DOMAIN")):
         return jsonify({"error": "School email required"}), 403
-    
+
     access_token = create_access_token(identity=email)
     return jsonify({"token": access_token, "email": email, "name": info["name"]})
 
@@ -39,13 +41,39 @@ def login():
 def logout():
     pass
 
+
 @app.route('/map', methods=["GET"])
 def map():
     pass
 
+
+@app.route('restaurant/all', methods=['GET'])
+def getNearby():
+    lat = request.args.get("lat")
+    lng = request.args.get("lng")
+    url = 'https://places.googleapis.com/v1/places:searchNearby'
+    headers = {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": os.getenv("GOOGLE_MAPS_API_KEY"),
+        "X-Goog-FieldMask": "places.displayName,places.formattedAddress, places.location, places.photos, places.currentOpeningHours, places.priceRange"
+    }
+    body = { 'includedTypes': ["restaurant", 'food'],
+            "locationRestriction": {
+            "circle": {
+                "center": {
+                "latitude": float(lat),
+                "longitude": float(lng)},
+                "radius": 1500.0
+            }
+        }
+    }
+    response = requests.post(url, json = body, headers=headers)
+    return jsonify(response.json())
+
+
 @app.route('/restaurant/{name}')
 def getRestaurant(name):
-    #user
+    # user
     address = database.get_address(name)
     cuisine = database.get_cuisine(name)
     walk_time = database.get_walk_time(name)
@@ -68,7 +96,7 @@ def getRestaurant(name):
                            sat_hrs=sat_hrs, sun_hrs=sun_hrs, reviews=reviews)
 
 
-@app.route('/review', methods = ['POST'])
+@app.route('/review', methods=['POST'])
 def update_review():
     name = request.form.get("name")
     user = request.form.get("user")
@@ -78,7 +106,8 @@ def update_review():
     if database.update_review(name, user, rating, comment):
         return redirect(f'/restaurant/{name}')
 
-@app.route('/review', methods = ['DELETE'])
+
+@app.route('/review', methods=['DELETE'])
 def delete_review():
     name = request.form.get("name")
     user = request.form.get("user")
@@ -88,19 +117,23 @@ def delete_review():
     if database.delete_review(name, user, rating, comment):
         return redirect(f'/restaurant/{name}')
 
-@app.route('/event', methods = ['POST'])
+
+@app.route('/event', methods=['POST'])
 def create_event():
     pass
 
-@app.route('/event', methods = ['PUT'])
+
+@app.route('/event', methods=['PUT'])
 def update_event():
     user = request.form.get("user")
 
-    #figure out user role
+    # figure out user role
 
-@app.route('/event', methods = ['DELETE'])
+
+@app.route('/event', methods=['DELETE'])
 def delete_event():
     pass
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     app.run(debug=True)
