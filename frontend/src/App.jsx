@@ -2,15 +2,24 @@ import { useState } from 'react'
 import Login from './Login'
 import {APIProvider} from '@vis.gl/react-google-maps';
 import MyMap from './MyMap'
-
-console.log(import.meta.env.VITE_GOOGLE_CLIENT_ID)
+import RestaurantDetail from './RestaurantDetail'
 
 function App() {
-  const [user, setUser] = useState(0)
+  const [user, setUser] = useState(() => {
+    const token = localStorage.getItem("token")
+    return token ? { token } : null
+  })
+  const logout = () => {
+    localStorage.removeItem("token")
+    setUser(null)
+  }
+  const [selected, setSelected] = useState(null)
 
   if (!user) return <Login onLogin={setUser} />
+  if (selected) return <RestaurantDetail restaurant={selected} onBack={() => setSelected(null)} />
+  return <MyMap onSelect={setSelected} onLogout={logout}/> 
 
-  return <MyMap />
+  // return <MyMap />
 }
 
 export default App

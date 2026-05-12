@@ -49,7 +49,7 @@ def map():
     return send_file("map.html")
 
 
-@app.route('restaurant/all', methods=['GET'])
+@app.route('/api/restaurants', methods=['GET'])
 def getNearby():
     lat = request.args.get("lat")
     lng = request.args.get("lng")
@@ -57,42 +57,18 @@ def getNearby():
     headers = {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": os.getenv("GOOGLE_MAPS_API_KEY"),
-        "X-Goog-FieldMask": "places.displayName,places.formattedAddress, places.location, places.photos, places.currentOpeningHours, places.priceRange"
+        "X-Goog-FieldMask": "places.displayName,places.id,places.formattedAddress,places.location,places.currentOpeningHours,places.priceRange,places.photos"
     }
-    body = { 'includedTypes': ["restaurant", 'food'],
+    body = { 'includedTypes': ["restaurant", "cafe", "tea_house"],
             "locationRestriction": {
-            "circle": {
-                "center": {
-                "latitude": float(lat),
-                "longitude": float(lng)},
-                "radius": 1500.0
+                "circle": {
+                    "center": {
+                        "latitude": 36.012,
+                        "longitude": -78.9206
+                    },
+                    "radius": 900.0
+                }
             }
-        }
-    }
-    response = requests.post(url, json = body, headers=headers)
-    return jsonify(response.json())
-
-
-
-@app.route('restaurant/all', methods=['GET'])
-def getNearby():
-    lat = request.args.get("lat")
-    lng = request.args.get("lng")
-    url = 'https://places.googleapis.com/v1/places:searchNearby'
-    headers = {
-        "Content-Type": "application/json",
-        "X-Goog-Api-Key": os.getenv("GOOGLE_MAPS_API_KEY"),
-        "X-Goog-FieldMask": "places.displayName,places.formattedAddress, places.location, places.photos, places.currentOpeningHours, places.priceRange"
-    }
-    body = { 'includedTypes': ["restaurant", 'food'],
-            "locationRestriction": {
-            "circle": {
-                "center": {
-                "latitude": float(lat),
-                "longitude": float(lng)},
-                "radius": 1500.0
-            }
-        }
     }
     response = requests.post(url, json = body, headers=headers)
     return jsonify(response.json())
